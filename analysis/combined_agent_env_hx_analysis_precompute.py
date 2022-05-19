@@ -183,13 +183,11 @@ class ComboAnalysisManager:
             os.path.join(self.save_path, f'clusters_per_sample_{self.num_samples}'),
             np.array(sample_modal_cluster)
         )
-        print("boop")
 
 
 def run():
-    cam = combo_analysis_manager()
+    cam = ComboAnalysisManager()
     cam.analyse_data()
-    print("boop")
 
 
 if __name__ == "__main__":
