@@ -172,7 +172,12 @@ defaults:
             num_its_value: 100000
         xplots:
             save_dir: "cross_corr_and_causation_plots"
+            save_dir_data: "cross_corr_and_causation_plot_data"
             extrema_threshold: 0.02
+        dyn_grad_comparison:
+            save_dir: "dyn_grad_comparison_plots"
+            save_dir_data: "dyn_grad_comparison_data"
+
 
 
 
