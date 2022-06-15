@@ -91,34 +91,53 @@ class DynGradManager:
                 per_ts_xcorrs.append(data)
             per_ts_xcorrs = np.stack(per_ts_xcorrs)
             per_cluster_xcorrs.append(per_ts_xcorrs)
-        per_cluster_xcorrs = np.stack(per_cluster_xcorrs) # (Clusters, Timesteps, IC_d, IC_d)
+        rev_per_cluster_xcorrs = np.stack(per_cluster_xcorrs)  # (Clusters, Timesteps, IC_d, IC_d)
+        per_cluster_xcorrs = np.flip(rev_per_cluster_xcorrs, axis=1) # Put time in the same order as jacobs
 
         # Get arrays for Jacobians for all clusters and time differences
+        per_cluster_jacobs = self.collect_cluster_jacobians()
 
 
+        # Get aligned xcorr and jacob timesteps
+        per_cluster_xcorrs = per_cluster_jacobs[:, -per_cluster_jacobs.shape[1]:]
+
+        print("boop")
         # Compare sign, create mask
 
         # Compare magnitude
+
+
         pass
 
-    def collect_sample_jacobian(self, generated_data_path, transformer, sample_id):
+    def collect_sample_jacobian(self, sample_id):
         n_ic_directions = self.hp.analysis.agent_h.n_components_ica
-        ts_id = self.hp.analysis.jacobian.grad_timestep
+        assert len(self.hp.analysis.saliency.common_timesteps) == 1
+        ts_id = self.hp.analysis.saliency.common_timesteps[0] + 1
         jacob_vecs = []
         for direction_id in range(n_ic_directions):  # D
-            hx_grad_vecs = np.load(os.path.join(generated_data_path,
+            hx_grad_vecs = np.load(os.path.join(self.generated_data_path,
                                                 f'sample_{sample_id:05d}/grad_hx_hx_direction_{direction_id}_ica.npy'))  # (T x H)
-            hx_grad_vec = hx_grad_vecs[ts_id]  # (H,)
-            # hx_grad_vec = transformer.project_gradients(hx_grad_vec)  # (I,)
-
-            env_grad_vecs = np.load(os.path.join(generated_data_path,
-                                                 f'sample_{sample_id:05d}/grad_env_h_hx_direction_{direction_id}_ica.npy'))
-            env_grad_vec = env_grad_vecs[ts_id]
-            grad_vec = np.concatenate([hx_grad_vec, env_grad_vec])
-            jacob_vecs.append(grad_vec)
+            hx_grad_vec = hx_grad_vecs[:ts_id]  # (H,)
+            hx_grad_vec = self.grad_projector(hx_grad_vec)  # (I,)
+            jacob_vecs.append(hx_grad_vec)
         jacobian = np.stack(jacob_vecs, axis=-1)  # (I, D)
         return jacobian
 
+    def collect_cluster_jacobians(self):
+        per_cluster_jacobs = []
+        print("Collecting jacobs for...")
+        for cluster in list(set(self.cluster_ids)):
+            print(f"... cluster {cluster}")
+            cluster_sample_ids = np.where(self.cluster_ids == cluster)[0]
+            cluster_jacobs = []
+            for sample_id in cluster_sample_ids:
+                sample_jacobs = self.collect_sample_jacobian(sample_id)
+                cluster_jacobs.append(sample_jacobs)
+            cluster_jacobs = np.stack(cluster_jacobs, axis=0)
+            cluster_jacobs = np.mean(cluster_jacobs, axis=0)
+            per_cluster_jacobs.append(cluster_jacobs)
+        per_cluster_jacobs = np.stack(per_cluster_jacobs)
+        return per_cluster_jacobs
 
 if __name__ == "__main__":
     dgm = DynGradManager()
