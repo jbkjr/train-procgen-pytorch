@@ -44,11 +44,11 @@ python render.py --exp_name maze1_test --env_name maze --distribution_mode hard 
 ### Maze (Variant 2)
 
 ```
-python train.py --exp_name maze2 --env_name maze_yellowgem --num_levels 100000 --distribution_mode hard --param_name hard-500 --num_timesteps 200000000 --num_checkpoints 5 --seed 2809
+python train.py --exp_name maze2 --env_name maze_yellowline --num_levels 100000 --distribution_mode hard --param_name hard-500 --num_timesteps 200000000 --num_checkpoints 5 --seed 2809
 ```
 
 ```
-python render.py --exp_name maze2_test --env_name maze_redgem_yellowstar --distribution_mode hard --param_name hard-500  --model_file PATH_TO_MODEL_FILE
+python render.py --exp_name maze2_test --env_name maze_redline_yellowgem --distribution_mode hard --param_name hard-500  --model_file PATH_TO_MODEL_FILE
 ```
 
 ### Keys and Chests
